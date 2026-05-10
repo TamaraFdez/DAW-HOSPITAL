@@ -1,9 +1,11 @@
+package Hospital.util;
+
+import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 public class Validacion {
-    
-    private static final Pattern DNI_PATTERN = Pattern.compile("[0-9]{8}[A-Za-z]");
 
+    private static final Pattern DNI_PATTERN = Pattern.compile("[0-9]{8}[A-Za-z]");
 
     public static boolean ValidandoDNI(String dni) {
         if (dni == null || dni.length() == 0)
@@ -17,6 +19,10 @@ public class Validacion {
         if (edad >= 0 && edad <= 120)
             return true;
         return false;
+    }
+
+    public static boolean ValidandoFechaHora(LocalDateTime fechaHora) {
+        return fechaHora.isAfter(LocalDateTime.now());
     }
 
 }
