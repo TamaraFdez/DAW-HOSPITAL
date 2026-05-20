@@ -45,6 +45,11 @@ public class HospitalService {
     public boolean existePaciente(String dni) {
         return pacientes.containsKey(dni);
     }
+  public String getNombrePaciente(String dni) {
+    Paciente p = pacientes.get(dni);
+    if (p == null) return null;
+    return p.verNombre() + " " + p.verApellidos();
+}
 
     public boolean añadirCita(String dni, LocalDateTime fechaHora, String especialidad) {
         Paciente paciente = pacientes.get(dni);
