@@ -4,6 +4,7 @@ import Hospital.model.Cita;
 import Hospital.model.Gravedad;
 import Hospital.model.Urgencia;
 import Hospital.service.HospitalService;
+import Hospital.service.PersonalService;
 import Hospital.service.UrgenciaService;
 import Hospital.util.MenuHelper;
 
@@ -16,6 +17,7 @@ public class Principal {
 
         HospitalService hospitalService = new HospitalService();
         UrgenciaService urgenciaService = new UrgenciaService();
+        PersonalService personalService = new PersonalService();
         hospitalService.cargarDatosPrueba();
 
         // datos mockeados de urgencias
@@ -44,6 +46,7 @@ public class Principal {
                 case 1 -> menuPacientes(sc, helper, hospitalService);
                 case 2 -> menuCitas(sc, helper, hospitalService);
                 case 3 -> menuUrgencias(sc, helper, hospitalService, urgenciaService);
+                case 4 -> menuPersonal(sc,helper, personalService);
                 case 0 -> System.out.println("\nSaliendo del hospital... ¡Que tenga un buen día!");
                 default -> System.out.println("Opción incorrecta.");
             }
@@ -60,6 +63,7 @@ public class Principal {
         System.out.println("│  1. Pacientes               │");
         System.out.println("│  2. Citas                   │");
         System.out.println("│  3. Urgencias               │");
+        System.out.println("│  4. Personal                │");
         System.out.println("│  0. Salir                   │");
         System.out.println("└─────────────────────────────┘");
         System.out.print("Selecciona: ");
@@ -68,7 +72,7 @@ public class Principal {
     private static void menuPacientes(Scanner sc, MenuHelper helper, HospitalService service) {
         int op = -1;
         do {
-            System.out.println("\n--- 👤 PACIENTES ---");
+            System.out.println("\n--- PACIENTES ---");
             System.out.println("1. Dar de alta un paciente");
             System.out.println("2. Mostrar todos los pacientes");
             System.out.println("0. Volver al menú principal");
@@ -276,4 +280,76 @@ public class Principal {
             }
         } while (op != 0);
     }
+     private static void menuPersonal(Scanner sc, MenuHelper helper, PersonalService service) {
+        int op = -1;
+        do {
+            System.out.println("\n--- PERSONAL ---");
+            System.out.println("1. Dar de alta nuevo empleado");
+            System.out.println("2. Mostrar todo el personal");
+            System.out.println("0. Volver al menú principal");
+            System.out.print("Selecciona: ");
+
+            try {
+                op = Integer.parseInt(sc.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Introduce un número válido.");
+                op = -1;
+            }
+
+            switch (op) {
+                case 1 -> {
+                    String nombre = helper.pedirTexto("Nombre: ");
+                    String apellidos = helper.pedirTexto("Apellidos: ");
+                    String dniPersonal;
+                    do {
+                        dniPersonal = helper.pedirDNI();
+                        if (service.existePersonal(dniPersonal))
+                            System.out.println("DNI ya registrado. Inténtalo de nuevo.");
+                    } while (service.existePersonal(dniPersonal));
+
+                 
+                    int subOp = -1;
+                    do{
+                        System.out.println("El nuevo empleado es:");
+                        System.out.println("1. Médico");
+                        System.out.println("2. Enfermero");
+                        System.out.println("3. Administrativo");
+                        System.out.println("0. Volver al menú anterior");
+                         try {
+                subOp = Integer.parseInt(sc.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Introduce un número válido.");
+                subOp = -1;
+            }
+                         switch(subOp){
+                        case 1-> {String especialidad = helper.pedirTexto("Especialidad: ");
+                        service.registrarMedico(nombre, apellidos, dniPersonal, especialidad);
+                     subOp = 0;}
+                        case 2 -> { 
+                           String planta = helper.pedirTexto("Asignar planta: ");
+                           service.registrarEnfermero(nombre, apellidos, dniPersonal, planta);
+                            subOp = 0;
+                        }
+                        case 3 ->{
+                           String departameto = helper.pedirTexto("Asignar departamento: ");
+                           service.registrarAdministrativo(nombre, apellidos, dniPersonal, departameto);
+                            subOp = 0;
+                        } 
+                        case 0 -> {
+                    /* volver */ }
+                default -> System.out.println("Opción incorrecta.");
+                    }
+                    }while (subOp != 0);
+                   
+                    System.out.println("Personal registrado con éxito.");
+                   
+                }
+                case 2 -> service.listarPersonal();
+                case 0 -> {
+                    /* volver */ }
+                default -> System.out.println("Opción incorrecta.");
+            }
+        } while (op != 0);
+    }
+
 }
