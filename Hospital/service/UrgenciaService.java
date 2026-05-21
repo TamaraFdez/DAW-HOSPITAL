@@ -2,6 +2,7 @@ package Hospital.service;
 
 import Hospital.model.Gravedad;
 import Hospital.model.Urgencia;
+import Hospital.model.PersonalSanitario;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -51,7 +52,7 @@ public class UrgenciaService {
             return;
         }
 
-        // Hacemos una copia para no vaciar la cola real al iterar
+        // Hago una copia para no vaciar la cola real al iterar
         PriorityQueue<Urgencia> copia = new PriorityQueue<>(
                 Comparator.comparingInt((Urgencia u) -> u.getGravedad().ordinal())
                         .thenComparingInt(u -> u.getOrdenLlegada()));
@@ -62,8 +63,7 @@ public class UrgenciaService {
         while (!copia.isEmpty()) {
             Urgencia u = copia.poll();
             String nombre = hospitalService.getNombrePaciente(u.getDniPaciente());
-            System.out.println(pos + ". " + nombre + " | DNI: " + u.getDniPaciente()
-                    + " | Gravedad: " + u.getGravedad());
+            System.out.println(pos + ". " + nombre + " " + u.toString() );
             pos++;
         }
     }
@@ -78,5 +78,15 @@ public class UrgenciaService {
 
     public Urgencia verSiguiente() {
         return colaPrioridad.peek();
+    }
+
+    public void asignarPersonalSanitarioAUrgencia(String dniPaciente, PersonalSanitario personal) {
+        Urgencia u = mapaUrgencias.get(dniPaciente);
+        if (u == null) {
+            System.out.println("Urgencia no encontrada.");
+            return;
+        }
+        u.setPersonalAsignado(personal);
+        System.out.println("Personal asignado con éxito.");
     }
 }

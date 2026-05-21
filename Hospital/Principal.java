@@ -1,7 +1,10 @@
 package Hospital;
 
 import Hospital.model.Cita;
+import Hospital.model.Enfermero;
 import Hospital.model.Gravedad;
+import Hospital.model.Medico;
+import Hospital.model.PersonalSanitario;
 import Hospital.model.Urgencia;
 import Hospital.service.HospitalService;
 import Hospital.service.PersonalService;
@@ -24,6 +27,18 @@ public class Principal {
         urgenciaService.registrarLlegada("11223344C", Gravedad.CRITICO); // Pedro
         urgenciaService.registrarLlegada("87654321B", Gravedad.LEVE); // María
         urgenciaService.registrarLlegada("12345678A", Gravedad.GRAVE); // Juan
+        // Personal mockeado
+        personalService.registrarMedico("Carlos", "López Ruiz", "55555555E", "Cardiología");
+        personalService.registrarMedico("Laura", "García Pérez", "66666666F", "Traumatología");
+        personalService.registrarEnfermero("Sofía", "Martín Gil", "77777777G", "Planta 2");
+        personalService.registrarEnfermero("Jorge", "Sánchez Mora", "88888888H", "Urgencias");
+        personalService.registrarAdministrativo("Elena", "Ruiz Torres", "99999999I", "Admisión");
+
+        // Asignar personal disponible para urgencias
+        personalService.agregarAUrgencias(1); // Carlos - médico
+        personalService.agregarAUrgencias(2); // Laura - médico
+        personalService.agregarAUrgencias(3); // Sofía - enfermera
+        personalService.agregarAUrgencias(4); // Jorge - enfermero
 
         Scanner sc = new Scanner(System.in);
         MenuHelper helper = new MenuHelper(sc);
@@ -44,9 +59,9 @@ public class Principal {
 
             switch (opcion) {
                 case 1 -> menuPacientes(sc, helper, hospitalService);
-                case 2 -> menuCitas(sc, helper, hospitalService);
-                case 3 -> menuUrgencias(sc, helper, hospitalService, urgenciaService);
-                case 4 -> menuPersonal(sc,helper, personalService);
+                case 2 -> menuCitas(sc, helper, hospitalService, personalService);
+                case 3 -> menuUrgencias(sc, helper, hospitalService, urgenciaService, personalService);
+                case 4 -> menuPersonal(sc, helper, personalService);
                 case 0 -> System.out.println("\nSaliendo del hospital... ¡Que tenga un buen día!");
                 default -> System.out.println("Opción incorrecta.");
             }
@@ -109,7 +124,8 @@ public class Principal {
         } while (op != 0);
     }
 
-    private static void menuCitas(Scanner sc, MenuHelper helper, HospitalService service) {
+    private static void menuCitas(Scanner sc, MenuHelper helper, HospitalService service,
+            PersonalService personalService) {
         int op = -1;
         do {
             System.out.println("\n--- CITAS ---");
@@ -117,6 +133,7 @@ public class Principal {
             System.out.println("2. Mostrar citas de un paciente");
             System.out.println("3. Mostrar todas las citas");
             System.out.println("4. Editar una cita");
+            System.out.println("5. Asignar Personal Sanitario a Cita");
             System.out.println("0. Volver al menú principal");
             System.out.print("Selecciona: ");
 
@@ -182,6 +199,35 @@ public class Principal {
                         System.out.println("Cita actualizada con éxito.");
                     }
                 }
+                case 5 -> {
+                    System.out.println("Id de la Cita: ");
+                    try {
+                        int idCita = Integer.parseInt(sc.nextLine().trim());
+                        if (!service.existeCita(idCita)) {
+                            System.out.println("No existe el ID de la cita.");
+                        } else {
+                            personalService.listarPersonalSanitario();
+                            System.out.println("Id del Médico/Enfermero al que asignarle la cita: ");
+                            try {
+                                int idPersonal = Integer.parseInt(sc.nextLine().trim());
+                                PersonalSanitario personal = personalService.buscarSanitarioPorId(idPersonal);
+                                if (service.asignarPersonalSanitarioACita(idCita, personal)) {
+                                    System.out.println("Personal asignado correctamente.");
+                                } else {
+                                    System.out.println("Ha sucedido un error inesperado, prueba de nuevo.");
+                                }
+
+                            } catch (NumberFormatException e) {
+                                System.out.println("Introduce un número válido.");
+                            }
+                        }
+
+                    } catch (NumberFormatException e) {
+                        System.out.println("Introduce un número válido.");
+
+                    }
+
+                }
                 case 0 -> {
                     /* volver */ }
                 default -> System.out.println("Opción incorrecta.");
@@ -191,7 +237,7 @@ public class Principal {
 
     private static void menuUrgencias(Scanner sc, MenuHelper helper,
             HospitalService hospitalService,
-            UrgenciaService urgenciaService) {
+            UrgenciaService urgenciaService, PersonalService personalService) {
         int op = -1;
         do {
             System.out.println("\n--- URGENCIAS ---");
@@ -199,6 +245,7 @@ public class Principal {
             System.out.println("1. Registrar llegada de paciente");
             System.out.println("2. Ver lista de espera");
             System.out.println("3. Atender siguiente paciente");
+            System.out.println("4. Asignar personal sanitario a urgencia");
             System.out.println("0. Volver al menú principal");
             System.out.print("Selecciona: ");
 
@@ -232,7 +279,7 @@ public class Principal {
                                 int edad = helper.pedirEdad();
                                 hospitalService.registrarPaciente(nombre, apellidos, dni, edad);
                                 System.out.println("Paciente registrado.");
-                                break; 
+                                break;
                             }
                         } catch (NumberFormatException e) {
                             System.out.println("Introduce un número válido.");
@@ -273,19 +320,93 @@ public class Principal {
                         }
                     }
                 }
+                case 4 -> {
+                    int opSub;
+                    do {
+                        System.out.println("=== ASIGNAR A URGENCIA ===");
+                        System.out.println("1. Listar personal sanitario");
+                        System.out.println("2. Asignar médico");
+                        System.out.println("3. Asignar enfermero");
+                        System.out.println("0. Volver al menú de urgencias");
+                        System.out.print("Selecciona: ");
 
+                        try {
+                            opSub = Integer.parseInt(sc.nextLine().trim());
+                        } catch (NumberFormatException e) {
+                            System.out.println("Introduce un número válido.");
+                            opSub = 0;
+                        }
+                        switch (opSub) {
+                            case 1 -> personalService.listarPersonalSanitario();
+                            case 2 -> {
+                                System.out.println("DNI del paciente de la urgencia");
+                                String dniPaciente = helper.pedirDNI();
+                                System.out.println("ID del médico a Asignar");
+
+                                try {
+                                    int idMedico = Integer.parseInt(sc.nextLine().trim());
+                                    PersonalSanitario medico = personalService.buscarSanitarioPorId(idMedico);
+                                    if (medico instanceof Medico) {
+                                        urgenciaService.asignarPersonalSanitarioAUrgencia(dniPaciente, medico);
+                                        System.out.println("Asigado correctamente.");
+
+                                    } else {
+                                        System.out.println("ID incorrecto, no pertenece a un médico");
+                                        opSub = -1;
+
+                                    }
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Introduce un número válido.");
+                                    opSub = -1;
+                                }
+
+                            }
+                            case 3 -> {
+                                System.out.println("DNI del paciente de la urgencia");
+                                String dniPaciente = helper.pedirDNI();
+                                System.out.println("ID del Enfermero a Asignar");
+
+                                try {
+                                    int idEnfermero = Integer.parseInt(sc.nextLine().trim());
+                                    PersonalSanitario enfermero = personalService.buscarSanitarioPorId(idEnfermero);
+                                    if (enfermero instanceof Enfermero) {
+
+                                        urgenciaService.asignarPersonalSanitarioAUrgencia(dniPaciente, enfermero);
+                                        System.out.println("Asigado correctamente.");
+                                    } else {
+                                        System.out.println("ID incorrecto, no pertenece a un enfermero");
+                                    }
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Introduce un número válido.");
+                                    opSub = -1;
+                                }
+
+                            }
+
+                            case 0 -> {
+                                /* volver */ }
+                            default -> System.out.println("Opción incorrecta.");
+                        }
+                    } while (opSub != 0);
+
+                }
                 case 0 -> {
                     /* volver */ }
                 default -> System.out.println("Opción incorrecta.");
             }
         } while (op != 0);
     }
-     private static void menuPersonal(Scanner sc, MenuHelper helper, PersonalService service) {
+
+    private static void menuPersonal(Scanner sc, MenuHelper helper, PersonalService service) {
         int op = -1;
         do {
             System.out.println("\n--- PERSONAL ---");
             System.out.println("1. Dar de alta nuevo empleado");
             System.out.println("2. Mostrar todo el personal");
+            System.out.println("3. Mostrar Personal Sanitario");
+            System.out.println("4. Listar Médicos");
+            System.out.println("5. Listar Enfermeros");
+            System.out.println("6. Gestionar asignación a urgencias");
             System.out.println("0. Volver al menú principal");
             System.out.print("Selecciona: ");
 
@@ -307,44 +428,93 @@ public class Principal {
                             System.out.println("DNI ya registrado. Inténtalo de nuevo.");
                     } while (service.existePersonal(dniPersonal));
 
-                 
                     int subOp = -1;
-                    do{
+                    do {
                         System.out.println("El nuevo empleado es:");
                         System.out.println("1. Médico");
                         System.out.println("2. Enfermero");
                         System.out.println("3. Administrativo");
                         System.out.println("0. Volver al menú anterior");
-                         try {
-                subOp = Integer.parseInt(sc.nextLine().trim());
-            } catch (NumberFormatException e) {
-                System.out.println("Introduce un número válido.");
-                subOp = -1;
-            }
-                         switch(subOp){
-                        case 1-> {String especialidad = helper.pedirTexto("Especialidad: ");
-                        service.registrarMedico(nombre, apellidos, dniPersonal, especialidad);
-                     subOp = 0;}
-                        case 2 -> { 
-                           String planta = helper.pedirTexto("Asignar planta: ");
-                           service.registrarEnfermero(nombre, apellidos, dniPersonal, planta);
-                            subOp = 0;
+                        try {
+                            subOp = Integer.parseInt(sc.nextLine().trim());
+                        } catch (NumberFormatException e) {
+                            System.out.println("Introduce un número válido.");
+                            subOp = -1;
                         }
-                        case 3 ->{
-                           String departameto = helper.pedirTexto("Asignar departamento: ");
-                           service.registrarAdministrativo(nombre, apellidos, dniPersonal, departameto);
-                            subOp = 0;
-                        } 
-                        case 0 -> {
-                    /* volver */ }
-                default -> System.out.println("Opción incorrecta.");
-                    }
-                    }while (subOp != 0);
-                   
+                        switch (subOp) {
+                            case 1 -> {
+                                String especialidad = helper.pedirTexto("Especialidad: ");
+                                service.registrarMedico(nombre, apellidos, dniPersonal, especialidad);
+                                subOp = 0;
+                            }
+                            case 2 -> {
+                                String planta = helper.pedirTexto("Asignar planta: ");
+                                service.registrarEnfermero(nombre, apellidos, dniPersonal, planta);
+                                subOp = 0;
+                            }
+                            case 3 -> {
+                                String departameto = helper.pedirTexto("Asignar departamento: ");
+                                service.registrarAdministrativo(nombre, apellidos, dniPersonal, departameto);
+                                subOp = 0;
+                            }
+                            case 0 -> {
+                                /* volver */ }
+                            default -> System.out.println("Opción incorrecta.");
+                        }
+                    } while (subOp != 0);
+
                     System.out.println("Personal registrado con éxito.");
-                   
+
                 }
                 case 2 -> service.listarPersonal();
+                case 3 -> service.listarPersonalSanitario();
+                case 4 -> service.listarMedicos();
+                case 5 -> service.listarEnfermeros();
+                case 6 -> {
+                    int subOp = -1;
+                    do {
+                        System.out.println("==== ASIGNACIÓN DE URGENCIAS ====");
+                        System.out.println("1. Asignar a urgencias");
+                        System.out.println("2. Desasignar de urgencias");
+                        System.out.println("0. Volver al menú anterior");
+                        try {
+                            subOp = Integer.parseInt(sc.nextLine().trim());
+                        } catch (NumberFormatException e) {
+                            System.out.println("Introduce un número válido.");
+                            subOp = -1;
+                        }
+                        switch (subOp) {
+                            case 1 -> {
+                                int asignarId;
+                                System.out.print("ID del personal a asignar:");
+                                try {
+                                    asignarId = Integer.parseInt(sc.nextLine().trim());
+                                    service.agregarAUrgencias(asignarId);
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Introduce un número válido.");
+                                    subOp = -1;
+                                }
+
+                            }
+                            case 2 -> {
+                                int desasignarId;
+                                System.out.print("ID del personal a asignar:");
+                                try {
+                                    desasignarId = Integer.parseInt(sc.nextLine().trim());
+                                    service.desasignarDeUrgencias(desasignarId);
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Introduce un número válido.");
+                                    subOp = -1;
+                                }
+
+                            }
+                            case 0 -> {
+                                /* volver */ }
+                            default -> System.out.println("Opción incorrecta.");
+                        }
+                    } while (subOp != 0);
+
+                }
                 case 0 -> {
                     /* volver */ }
                 default -> System.out.println("Opción incorrecta.");

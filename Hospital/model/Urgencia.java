@@ -16,13 +16,15 @@ public class Urgencia {
     private final String dniPaciente;
     private final Gravedad gravedad;
     private final LocalDateTime horaLlegada;
-    private final int ordenLlegada; // desempate: menor = llegó antes
+    private final int ordenLlegada; 
+    private Personal personalAsignado = null;
 
     public Urgencia(String dniPaciente, Gravedad gravedad, int ordenLlegada) {
         this.dniPaciente = dniPaciente;
         this.gravedad = gravedad;
         this.horaLlegada = LocalDateTime.now();
         this.ordenLlegada = ordenLlegada;
+ 
     }
 
     public String getDniPaciente() {
@@ -40,10 +42,17 @@ public class Urgencia {
     public int getOrdenLlegada() {
         return ordenLlegada;
     }
+    public void setPersonalAsignado(PersonalSanitario personal) {
+    this.personalAsignado = personal;
+}
 
     @Override
     public String toString() {
-        return String.format("DNI: %-10s | Gravedad: %-14s | Llegada: %s",
-                dniPaciente, gravedad, horaLlegada.format(FORMATO));
+        if(personalAsignado == null){
+        return "DNI: " + this.dniPaciente + " | Gravedad: "+ this.gravedad+" | Llegada: "+ this.horaLlegada.format(FORMATO) + " | No hay personal asignado";
+    }
+    return "DNI: " + this.dniPaciente + " | Gravedad: "+ this.gravedad+" | Llegada: "+ this.ordenLlegada +" | Personal Asignado con el ID:" + personalAsignado.verId() +" y Nombre: " + personalAsignado.verNombre() + " "+ personalAsignado.verApellidos();
+                
+        
     }
 }

@@ -14,6 +14,7 @@ public class Cita {
     private String especialidad;
     private Estado estado;
     private Paciente paciente;
+    private PersonalSanitario personalAsignado;
 
     public Cita(int idCita, LocalDateTime fechaHora, String especialidad, Paciente paciente) {
         this.idCita = idCita;
@@ -50,17 +51,29 @@ public class Cita {
     public void setFechaHora(LocalDateTime fechaHora) {
         this.fechaHora = fechaHora;
     }
+     public void setPersonalAsignado(PersonalSanitario personal) {
+    this.personalAsignado = personal;
+}
 
     @Override
     public String toString() {
         DateTimeFormatter fechaYHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        return  "\n--- Cita #" + idCita + " ---" +
-            "\nFecha:       " + fechaHora.format(fechaYHora) +
-            "\nEspecialidad:" + especialidad +
-            "\nEstado:      " + estado +
-            "\nPaciente:    " + paciente.verNombre() + " " + paciente.verApellidos() +
-            "\nDNI:         " + paciente.verDNI() +
+        if(personalAsignado == null){
+            return  "\n--- Cita #" + idCita + " ---" +
+            "\nFecha:            " + fechaHora.format(fechaYHora) +
+            "\nEspecialidad:     " + especialidad +
+            "\nEstado:           " + estado +
+            "\nPaciente:         " + paciente.verNombre() + " " + paciente.verApellidos() +
+            "\nDNI:              " + paciente.verDNI() +
             "\n";
+        }
+        return  "\n--- Cita #" + idCita + " ---" +
+            "\nFecha:            " + fechaHora.format(fechaYHora) +
+            "\nEspecialidad:     " + especialidad +
+            "\nEstado:           " + estado +
+            "\nPaciente:         " + paciente.verNombre() + " " + paciente.verApellidos() +
+            "\nDNI:              " + paciente.verDNI() +
+            "\nMédico/Enfermera: " + personalAsignado.verNombre() + " " + personalAsignado.verApellidos();
     }
 
 }

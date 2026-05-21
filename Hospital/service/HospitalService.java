@@ -8,6 +8,7 @@ import java.util.Map;
 
 import Hospital.model.Cita;
 import Hospital.model.Paciente;
+import Hospital.model.PersonalSanitario;
 
 public class HospitalService {
 
@@ -101,6 +102,30 @@ public class HospitalService {
             }
         }
         System.out.println("Cita no encontrada.");
+        return false;
+    }
+    public boolean existeCita(int idCita){
+        for(Cita c : citas){
+            if(idCita == c.getIdCita()){
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean asignarPersonalSanitarioACita(int idCita, PersonalSanitario personal ){
+        if (idCita < 0 || personal == null) {
+            System.out.println("Error en los datos al asignar, prueba de nuevo.");
+            return false;
+        }
+        if(!existeCita(idCita)) return false;
+        for(Cita c : citas){
+            if(idCita == c.getIdCita()){
+                c.setPersonalAsignado(personal);
+                System.out.println("Personal Sanitario Asignado.");
+                return true;
+            }
+        }
+        System.out.println("No hay cita con ese ID, prueba de nuevo.");
         return false;
     }
 
